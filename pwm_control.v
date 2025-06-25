@@ -1,6 +1,6 @@
 module PWM_Control #(
     parameter CLK_FREQ = 25_000_000,
-    parameter PWM_FREQ = 13
+    parameter PWM_FREQ = 5
 ) (
     input  wire clk,
     input  wire rst_n,
