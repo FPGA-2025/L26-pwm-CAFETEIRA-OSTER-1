@@ -7,41 +7,51 @@ module PWM_Control #(
     output wire [7:0] leds
 );
     localparam integer PWM_PERIOD = CLK_FREQ / PWM_FREQ;
-    localparam SECOND = CLK_FREQ / 2;
-    localparam DUTY = 10000; // 50%
 
-    // PWM counter
-    reg [31:0] counter_frequency = 0;
-    reg [7:0] leds_reg = 8'b00000000;
+    reg [15:0] duty_cycle = 0;
+    reg dir = 0; // 0: sobe, 1: desce
 
-    reg [31:0] counter = 0;
-    reg [31:0] counter_duty = 0;
+    reg [15:0] counter = 0;
+    reg pwm_out = 0;
 
-    assign leds = leds_reg;
-
-    // PWM logic
+    // PWM generation
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            counter_frequency <= 0;
             counter <= 0;
+            pwm_out <= 0;
         end else begin
-            if (counter_frequency <= SECOND - 1 ) begin
-                counter_frequency <= counter_frequency + 1;
-                if(counter <= PWM_PERIOD - 1) begin
-                    counter <= counter + 1;
-                    if (counter_duty <= DUTY - 1 ) begin
-                        leds_reg <= 8'b11111111;
-                    end else begin
-                        leds_reg <= 8'b00000000;
-                    end
-                end else begin
-                    counter <= 0;
-                    counter_duty <= 0;
-                end
-            end else begin  
-                leds_reg <= ~leds_reg;
-                counter_frequency <= 0;
+            if (counter < PWM_PERIOD - 1)
+                counter <= counter + 1;
+            else
+                counter <= 0;
+
+            if (counter < duty_cycle)
+                pwm_out <= 1;
+            else
+                pwm_out <= 0;
+        end
+    end
+
+    // Duty cycle fade (0.0025% até 70%)
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            duty_cycle <= 0;
+            dir <= 0;
+        end else begin
+            if (!dir) begin
+                if (duty_cycle < PWM_PERIOD * 70 / 100)
+                    duty_cycle <= duty_cycle + 1;
+                else
+                    dir <= 1;
+            end else begin
+                if (duty_cycle > PWM_PERIOD / 40000) // ~0.0025%
+                    duty_cycle <= duty_cycle - 1;
+                else
+                    dir <= 0;
             end
         end
     end
+
+    assign leds = {8{pwm_out}};
+
 endmodule
