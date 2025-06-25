@@ -1,6 +1,6 @@
 module PWM_Control #(
     parameter CLK_FREQ = 25_000_000,
-    parameter PWM_FREQ = 15
+    parameter PWM_FREQ = 13
 ) (
     input  wire clk,
     input  wire rst_n,
@@ -8,7 +8,7 @@ module PWM_Control #(
 );
     localparam integer PWM_PERIOD = CLK_FREQ / PWM_FREQ; // ≈ 1_666_666
 
-    reg [21:0] counter = 0; // 22 bits são suficientes para contar até ~4 milhões
+    reg [21:0] counter = 0; // 22 bits são suficientes para contar até ~4 milhõess
     reg pwm_out = 0;
 
     always @(posedge clk or negedge rst_n) begin
